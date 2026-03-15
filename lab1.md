@@ -1,4 +1,4 @@
-# Lab 1
+# Lab 1 - Zarządzanie siecią
 
 ### Intro
 
@@ -10,8 +10,8 @@
 
 ##### Konta na maszynach:
 
-- Nazwa: `root` Hasło: `root`
-- Nazwa: `user` Hasło: `user`
+- Login: `root` Hasło: `root`
+- Login: `user` Hasło: `user`
 
 ### Etap 1 - Interfejsy i routing
 
