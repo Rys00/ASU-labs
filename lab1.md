@@ -2,7 +2,7 @@
 
 ### Intro
 
-##### Kasowanie starych maszyn
+##### Kasowanie starych maszyn i konfiguracja do ćwiczenia
 
 ```sh
 /dyd/asu/net.pl
