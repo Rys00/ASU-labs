@@ -238,7 +238,7 @@ local_enable=YES
 Aktywuj:
 
 ```sh
-systemctl restart vsftpd
+service vsftpd restart
 ```
 
 ##### Host 2
