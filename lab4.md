@@ -46,9 +46,9 @@ dn: ou=groups,dc=asu,dc=ia,dc=pw,dc=edu,dc=pl
 objectClass: organizationalUnit
 ou: groups
 
-dn: cn=users,ou=groups,dc=asu,dc=ia,dc=pw,dc=edu,dc=pl
+dn: cn=students,ou=groups,dc=asu,dc=ia,dc=pw,dc=edu,dc=pl
 objectClass: posixGroup
-cn: users
+cn: students
 gidNumber: 5000
 
 dn: uid=jan,ou=people,dc=asu,dc=ia,dc=pw,dc=edu,dc=pl
@@ -98,12 +98,14 @@ hasło: `admin`
 Szukamy użytkownika jan:
 
 ```sh
-ldapsearch -x uid=jan
+ldapsearch -x -LLL -b "dc=asu,dc=ia,dc=pw,dc=edu,dc=pl" uid=jan
 ```
+
+powinno nam wyświetlić dane użytkownika
 
 ### Etap 2 - Konfiguracja logowania LDAP
 
-##### Host 1 i Host 2
+##### **NA OBU MASZYNACH!** Host 1 i Host 2
 
 ```sh
 nano /etc/nsswitch.conf
