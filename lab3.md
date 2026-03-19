@@ -54,8 +54,6 @@ pliki powinien się pojawić na PC
 ```sh
 apt update
 apt install cups cups-pdf elinks
-
-systemctl start cups
 ```
 
 Następnie:
