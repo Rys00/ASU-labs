@@ -26,6 +26,8 @@ chmod 777 ~/cups
 
 `Ustawienia maszyny -> Shared Folders -> Add folder`
 
+**Jeżeli nie pozwala kliknąć ok to wybierzmy Folder Path przy użyciu ikonki**
+
 | pole        | wartość |
 | ----------- | ------- |
 | Folder Path | ~/cups  |
@@ -33,15 +35,17 @@ chmod 777 ~/cups
 
 ```sh
 mkdir /CUPS
+chmod 777 /CUPS
 mount -t vboxsf cups /CUPS
 ```
 
 Weryfikacja:
 
 ```sh
-su anonymous
 touch /CUPS/test
 ```
+
+pliki powinien się pojawić na PC
 
 ### Etap 2 - Serwer CUPS
 
@@ -60,10 +64,14 @@ Następnie:
 nano /etc/cups/cups-pdf.conf
 ```
 
-Zamieniamy `Out /var/spool/cups-pdf` na:
+Podmieniamy wartości:
 
-```
+```conf
+# ...
 Out /CUPS
+# ...
+UserUMask 0022
+# ...
 ```
 
 Aktywacja:
@@ -72,21 +80,31 @@ Aktywacja:
 service cups restart
 ```
 
-Następnie otwieramy:
+Następnie:
 
 ```sh
-elinks http://localhost:631
+nano /etc/cups/printers.conf
 ```
 
-W menu `Administration -> Add Printer` wybieramy:
+Szukamy sekcji domyślnie zainstalowanej drukarki o nazwie `PDF` i zmieniamy pole:
 
+**Jeżeli nie mamy drukarki możemy dodać ją przy użyciu:** `elinks http://localhost:631`
+
+```conf
+# ...
+Shared Yes
+# ...
 ```
-PDF Printer (CUPS-PDF)
+
+Aktywacja:
+
+```sh
+service cups restart
 ```
 
 Weryfikacja:
 
-Klikamy w panelu `Printers -> Print Test Page`
+`lp /etc/hosts`
 
 Na PC powinien pojawić się nowy plik pdf w `~/cups`
 
@@ -94,16 +112,11 @@ Na PC powinien pojawić się nowy plik pdf w `~/cups`
 
 ##### Host 1
 
-Wchodzimy do panelu:
+Włączamy udostępnianie drukarek:
 
 ```sh
-elinks http://localhost:631
+cupsctl --share-printers
 ```
-
-Włączamy:
-
-- `Administration -> Share printers connected to this system`
-- `Printer -> Modify Printer -> Share This Printer`
 
 Aktywacja:
 
@@ -113,16 +126,17 @@ service cups restart
 
 ##### Host 2
 
-Sprawdzamy widoczność drukarki:
+Sprawdzamy widoczność drukarki i ustawiamy ją jako domyślną:
 
 ```sh
 lpstat -p
+lpoptions -d PDF # lub inna nazwa naszej drukarki
 ```
 
 Test wydruku:
 
 ```sh
-echo test | lp
+echo "test" | lp
 ```
 
-Na PC powinien pojawić się nowy plik w `~/cups`
+Na PC powinien pojawić się nowy plik (`_stdin_.pdf`) w `~/cups` o zawartości `test`
