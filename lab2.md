@@ -25,17 +25,7 @@ apt install bind9 dnsutils
 Następnie:
 
 ```sh
-nano  /etc/named.conf
-```
-
-Inne opcje:
-
-```sh
 nano /etc/bind/named.conf.local
-```
-
-```sh
-nano /etc/named.boot
 ```
 
 Dodaj:
@@ -43,12 +33,12 @@ Dodaj:
 ```
 zone "asu.ia.pw.edu.pl" in {
     type master;
-    file "asu.dns";
+    file "/etc/bind/asu.dns";
 };
 
 zone "4.168.192.in-addr.arpa" in {
     type master;
-    file "asu.rdns";
+    file "/etc/bind/asu.rdns";
 };
 ```
 
@@ -62,7 +52,7 @@ zone "4.168.192.in-addr.arpa" in {
 Następnie:
 
 ```sh
-nano /var/named/asu.dns
+nano /etc/bind/asu.dns
 ```
 
 Zawartość:
@@ -77,9 +67,10 @@ $TTL 604800
         604800 )
 
 @       IN  NS      host1.asu.ia.pw.edu.pl.
+@       IN  NS      host2.asu.ia.pw.edu.pl.
 
-host1   IN  A       192.168.4.1
-host2   IN  A       192.168.4.2
+host1   IN  A       192.168.4.10
+host2   IN  A       192.168.4.20
 ```
 
 | pole                   | znaczenie             |
@@ -104,7 +95,7 @@ Ostatnie linijki mapują nazwy hostów do ich adresów
 Następnie:
 
 ```sh
-nano /var/named/asu.rdns
+nano /etc/bind/asu.rdns
 ```
 
 Zawartość:
@@ -119,23 +110,24 @@ $TTL 604800
         604800 )
 
 @       IN  NS      host1.asu.ia.pw.edu.pl.
+@       IN  NS      host2.asu.ia.pw.edu.pl.
 
-1   IN  PTR host1.asu.ia.pw.edu.pl.
-2   IN  PTR host2.asu.ia.pw.edu.pl.
+10   IN  PTR host1.asu.ia.pw.edu.pl.
+20   IN  PTR host2.asu.ia.pw.edu.pl.
 ```
 
 Weryfikacja:
 
 ```sh
-named-checkconf /etc/named.conf
-named-checkzone asu.ia.pw.edu.pl /var/named/asu.dns
-named-checkzone 4.168.192.in-addr.arpa /var/named/asu.rdns
+named-checkconf /etc/bind/named.conf.local
+named-checkzone asu.ia.pw.edu.pl /etc/bind/asu.dns
+named-checkzone 4.168.192.in-addr.arpa /etc/bind/asu.rdns
 ```
 
 Aktywacja:
 
 ```sh
-systemctl restart named
+service bind9 restart
 ```
 
 ##### Host 2
@@ -153,9 +145,12 @@ nano /etc/resolv.conf
 
 Zawartość:
 
+**Komentujemy istniejące tam nameserver-y!**
+Dodajemy własne:
+
 ```
 domain asu.ia.pw.edu.pl
-nameserver 192.168.4.1
+nameserver 192.168.4.10
 ```
 
 | linia      | znaczenie         |
@@ -169,7 +164,7 @@ Z host 2:
 
 ```sh
 nslookup host1.asu.ia.pw.edu.pl
-nslookup 192.168.4.1
+nslookup 192.168.4.10
 ping host1.asu.ia.pw.edu.pl
 ```
 
@@ -178,7 +173,7 @@ ping host1.asu.ia.pw.edu.pl
 ##### Host 2
 
 ```sh
-nano /etc/named.conf
+nano /etc/bind/named.conf.local
 ```
 
 Zawartość:
@@ -186,21 +181,21 @@ Zawartość:
 ```
 zone "asu.ia.pw.edu.pl" in {
     type slave;
-    file "asu.dns";
-    masters { 192.168.4.1; };
+    file "/etc/bind/asu.dns";
+    masters { 192.168.4.10; };
 };
 
 zone "4.168.192.in-addr.arpa" in {
     type slave;
-    file "asu.rdns";
-    masters { 192.168.4.1; };
+    file "/etc/bind/asu.rdns";
+    masters { 192.168.4.10; };
 };
 ```
 
 Aktywacja:
 
 ```sh
-systemctl restart named
+service restart bind9
 ```
 
 ##### Test serwera slave
@@ -208,7 +203,7 @@ systemctl restart named
 Z host 2:
 
 ```sh
-nslookup host1.asu.ia.pw.edu.pl 192.168.4.2
+nslookup host1.asu.ia.pw.edu.pl 192.168.4.20
 ```
 
 ### Etap 3 - NFS
@@ -230,13 +225,13 @@ nano /etc/exports
 Dodaj:
 
 ```
-/pub 192.168.4.2(rw,sync,no_subtree_check)
+/pub 192.168.4.20(rw,sync,no_subtree_check)
 ```
 
 | element          | znaczenie                 |
 | ---------------- | ------------------------- |
 | /pub             | katalog udostępniony      |
-| 192.168.4.2      | klient NFS                |
+| 192.168.4.20     | klient NFS                |
 | rw               | odczyt i zapis            |
 | sync             | zapis synchroniczny       |
 | no_subtree_check | brak sprawdzania poddrzew |
@@ -245,7 +240,7 @@ Aktywacja:
 
 ```sh
 exportfs -a
-systemctl restart nfs-kernel-server
+service nfs-kernel-server restart
 ```
 
 Weryfikacja:
@@ -259,7 +254,7 @@ exportfs
 ```sh
 apt install nfs-common
 mkdir /host1
-mount 192.168.4.1:/pub /host1
+mount 192.168.4.10:/pub /host1
 ```
 
 Następnie:
